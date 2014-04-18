@@ -76,7 +76,8 @@ USE_L10N = True
 USE_TZ = True
 
 TEMPLATE_DIRS = (
-    '/users/kdrahbar/dev/CSE591-Group-Project/templates',
+    #'/users/kdrahbar/dev/CSE591-Group-Project/templates',
+    '/Users/DaMania/Dev/CSE591-Group-Project/templates',
 
 )
 
@@ -86,7 +87,8 @@ TEMPLATE_DIRS = (
 STATIC_URL = '/static/'
 # Bootstrap stuff
 STATICFILES_DIRS = (
-    '/Users/kdrahbar/djcode/track_yourself/static',
+    #'/Users/kdrahbar/djcode/track_yourself/static',
+    '/Users/DaMania/Dev/CSE591-Group-Project/static',
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(
