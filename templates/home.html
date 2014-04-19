@@ -1,0 +1,408 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<title> Our App </title>
+
+	<!-- Bootstrap core CSS -->
+
+	<link href='{% static "bare/css/bootstrap.css" %}'
+	rel="stylesheet" media="screen">
+
+	<!-- Add custom CSS here -->
+
+	<script type="text/javascript"
+		src="https://maps.googleapis.com/maps/api/js?sensor=true">
+	</script>
+
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+<style>
+	body {margin-top: 60px;}
+	#map-canvas {
+	width:100%;
+	height:40%;
+	min-width: 700px;
+	min-height: 615px;
+	padding-bottom: 100px;
+	}
+	#search_area {
+	padding-left: 10px;
+	}
+	#search_area input{
+		margin-left: 10px;
+	}
+
+	#restaurantList{
+		margin-top: 10px;
+		margin-left: 10px;
+		padding-bottom: 5px;
+
+	}
+	#optionsPanel{
+		margin-left: 10px;
+		margin-bottom: 10px;
+		padding-bottom:10px;
+		border-bottom: 10px;
+	}
+	#viewBy{
+		margin-bottom: 3px;
+	}
+
+</style>
+
+</head>
+
+<body>
+
+	<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="/home/">Home</a>
+			</div>
+
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse navbar-ex1-collapse">
+				<ul class="nav navbar-nav">
+				</ul>
+			</div><!-- /.navbar-collapse -->
+		</div><!-- /.container -->
+	</nav>
+
+	<div class="container-fluid">
+
+		<div class="row">
+			<div class="col-md-3">
+				<div id="search_area"></div>
+				<div id="restaurantList"></div>
+				<div id="optionsPanel"></div>
+			</div>	
+			<div class="col-md-9">
+				 <div id ="viewBy"></div>
+				 <div id="map-canvas"></div>
+			</div>
+		</div>
+
+	</div><!-- /.container -->
+
+	<!-- JavaScript -->
+
+
+	<script src="{% static 'bare/js/jquery-1.10.2.js' %}"></script>
+	<script src="{% static 'bare/js/bootstrap.js' %}"></script>
+	<script src="{% static 'totem/js/jquery.totemticker.js' %}"></script>
+
+	<!-- Loading the Map -->
+	
+	<script type="text/javascript">
+	var map;
+	var view;
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+			            }
+			        }
+			    }
+			    return cookieValue;
+			}
+			var csrftoken = getCookie('csrftoken');
+
+			function csrfSafeMethod(method) {
+			    // these HTTP methods do not require CSRF protection
+			    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+			}
+			function sameOrigin(url) {
+			    // test that a given url is a same-origin URL
+			    // url could be relative or scheme relative or absolute
+			    var host = document.location.host; // host + port
+			    var protocol = document.location.protocol;
+			    var sr_origin = '//' + host;
+			    var origin = protocol + sr_origin;
+			    // Allow absolute or scheme relative URLs to same origin
+			    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+			        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+			        // or any other URL that isn't scheme relative or absolute i.e relative.
+			        !(/^(\/\/|http:|https:).*/.test(url));
+			}
+			$.ajaxSetup({
+			    beforeSend: function(xhr, settings) {
+			        if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+			            // Send the token to same-origin, relative URLs only.
+			            // Send the token only if the method warrants CSRF protection
+			            // Using the CSRFToken value acquired earlier
+			            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			        }
+			    }
+			});
+
+// Sets the map on all markers in the array.
+function setAllMap(map) {
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(map);
+  }
+  markers = []
+}
+
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+  setAllMap(null);
+}
+
+function makeInfoWindowEvent(map, infowindow, marker) {
+	google.maps.event.addListener(marker, 'click', function() {
+    infowindow.open(map, marker);
+  });
+}
+
+function yelpBtn_clicked() {
+	view = 0;
+}
+
+function zillowBtn_clicked() {
+	view = 1;
+}
+
+function both_clicked(){
+	view = 2;
+}
+
+var markers = []	
+function searchPressed () {
+	var placeName = document.getElementById('searchArea').value;
+	$.ajax({
+		     type:"POST",
+		     url:"/search/",
+		     data: {
+		            'place': placeName
+		        },
+		      success: function(data){
+		      		var json = data.data;
+		      		var list = document.getElementById('restaurant_list');
+		      		var items = list.getElementsByTagName('li')
+		      		var options = document.getElementById('scrollOptions');
+
+		      		if (json.restaurants.length != 0)
+		      			{
+		      				var markerBounds = new google.maps.LatLngBounds();
+		      				// If there is only one city
+		      				if(json.restaurants.length == 20)
+		      				{
+			      				for(var i =0; i < json.restaurants.length; i++)
+			      				{
+			      					items[i].innerHTML = json.restaurants[i];
+			      				}
+			      				clearMarkers();
+			      				list.style.display = "block";
+			      				options.style.display = "block";
+			      				map.panTo(new google.maps.LatLng(json.location[0], json.location[1]));
+      							map.setZoom(12);
+
+      							var myLatlng = new google.maps.LatLng(json.location[0],json.location[1]);
+	      						var marker = new google.maps.Marker({
+							    position: myLatlng,
+							    icon: "http://127.0.0.1:8000/media/yellow.png",
+							    map: map
+								}); 
+								var infowindow = new google.maps.InfoWindow({
+									content: 'Percentage of Single Males: ' + json.singleMale + '<br>' +
+											 'Percentage of Single Females: ' + json.singleFemale + '<br>' +
+											 'Average Income: ' + json.averageIncome + '<br>' +
+											 'Average Home Price: ' + json.homePrice  + '<br>' +
+											 'Percentage of Home Renters: ' + json.rentPercent + '<br>' +
+											 'Percentage of Homes with Children: ' + json.singleHomes
+								});
+								makeInfoWindowEvent(map, infowindow, marker);
+								markerBounds.extend(myLatlng);
+								markers.push(marker)  
+		      				}
+		      				else
+		      				{
+		      					clearMarkers();
+		      					for(var i = 0; i < json.names.length; i++)
+		      					{
+		      						var myLatlng = new google.maps.LatLng(json.locations[i][0],json.locations[i][1]);
+		      						var marker = new google.maps.Marker({
+								    position: myLatlng,
+								    map: map
+									});
+									var infowindow = new google.maps.InfoWindow({
+										content: 'Percentage of Single Males: ' + json.singleMale[i] + '<br>' +
+												 'Percentage of Single Females: ' + json.singleFemale[i] + '<br>' +
+												 'Average Income: ' + json.averageIncome[i] + '<br>' +
+												 'Average Home Price: ' + json.homePrice[i]  + '<br>' +
+												 'Percentage of Home Renters: ' + json.rentPercent[i] + '<br>' +
+												 'Percentage of Homes with Children: ' + json.singleHomes[i]
+    								});
+    								makeInfoWindowEvent(map, infowindow, marker);
+    								markerBounds.extend(myLatlng);
+    								markers.push(marker)
+								}
+								map.fitBounds(markerBounds);
+		      				}
+		      			}
+		      		else
+		      		{
+		      			list.style.display = "none";
+		      			options.style.display = "none";
+		      		}
+
+		      }
+		    });	
+}
+
+function initialize() 
+{
+	var mapOptions = {
+		center: new google.maps.LatLng(33.4500, -112.0667),
+		zoom: 10,
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		mapTypeControl:false,
+
+		panControl:true,
+		panControlOptions: {
+			position:google.maps.ControlPosition.LEFT_CENTER
+		},
+
+		zoomControl:true,
+		zoomControlOptions: {
+			position:google.maps.ControlPosition.LEFT_CENTER
+		},
+
+		streetViewControl:false,
+		scaleControl:false
+	};
+
+	 map = new google.maps.Map(document.getElementById("map-canvas"),
+		mapOptions);
+
+	// Option for view by yelp
+	var yelpBtn = document.createElement('input');
+	yelpBtn.setAttribute('name', 'yelpB');
+	yelpBtn.setAttribute('value','View by Yelp');
+	yelpBtn.type = 'button';
+	yelpBtn.onclick = yelpBtn_clicked;
+
+
+	var zillowBtn = document.createElement('input');
+	zillowBtn.setAttribute('name', 'zillowB');
+	zillowBtn.setAttribute('value','View by Zillow');
+	zillowBtn.type = 'button';
+	zillowBtn.onclick = zillowBtn_clicked;
+
+	var both = document.createElement('input');
+	both.setAttribute('name', 'v_both');
+	both.setAttribute('value','Combine!');
+	both.type = 'button';
+	both.onclick = both_clicked;
+
+	var yelp_zillowButton = document.getElementById("viewBy");
+	yelp_zillowButton.appendChild(yelpBtn);
+	yelp_zillowButton.appendChild(zillowBtn);
+	yelp_zillowButton.appendChild(both);
+
+	//search field
+	var box = document.createElement('input');
+	box.setAttribute('id','searchArea');
+	box.type = 'text';
+
+	//search button
+	var btn = document.createElement('input');
+	btn.setAttribute('name','search');
+	btn.setAttribute('value','Search');
+	btn.type = 'button';
+
+	btn.onclick = searchPressed;
+
+	var areaDiv = document.getElementById("search_area");
+	areaDiv.appendChild(box);
+	areaDiv.appendChild(btn);
+			
+	// List of restaurants
+	var restaurant_list = document.createElement('ul');
+	restaurant_list.setAttribute('id', 'restaurant_list');
+	restaurant_list.setAttribute('style', 'pull-left');
+	var child;
+	for(var i =0; i < 20; i++)
+	{
+		child = document.createElement('li');
+		child.setAttribute('class', 'list-group-item');
+		restaurant_list.appendChild(child);
+
+	}
+	restaurant_list.style.position = 'pull-left';
+	restaurant_list.style.left = '175px';
+	restaurant_list.style.width = '250px';
+	restaurant_list.style.height = '400px';
+	restaurant_list.top = '0px';
+	restaurant_list.style.display = "none";
+	
+	var listDiv = document.getElementById("restaurantList");
+	listDiv.appendChild(restaurant_list);
+
+	var par = document.createElement('p');
+	par.setAttribute('id', 'scrollOptions');
+	var next = document.createElement('a');
+	next.setAttribute('href','#');
+	next.setAttribute('id', 'ticker-next');
+	next.innerHTML = "Next /";
+	par.appendChild(next);
+	
+
+	var previous = document.createElement('a');
+	previous.setAttribute('href','#');
+	previous.setAttribute('id','ticker-previous');
+	previous.innerHTML = " Previous /";
+	par.appendChild(previous);
+	
+	var stop = document.createElement('a');
+	stop.setAttribute('href','#');
+	stop.setAttribute('id', 'stop');
+	stop.innerHTML = " Stop /";
+	par.appendChild(stop);
+
+	var start = document.createElement('a');
+	start.setAttribute('href', '#');
+	start.setAttribute('id', 'start');
+	start.innerHTML  = " Start";
+	par.appendChild(start);
+
+	par.style.display = "none";
+	var menu = document.getElementById('optionsPanel');
+	menu.appendChild(par);
+	
+	$("#restaurant_list").totemticker({
+		row_height  :   '100px',
+		next        :   '#ticker-next',
+		previous    :   '#ticker-previous',
+		stop        :   '#stop',
+		start       :   '#start',
+		mousestop:true,
+		max_items: 5 // Maximum items to display 
+		});
+	$("#restaurant_list").addClass("list-group");
+
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script> 
+
+</body>
+</html>
