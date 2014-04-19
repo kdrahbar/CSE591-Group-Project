@@ -76,19 +76,23 @@ USE_L10N = True
 USE_TZ = True
 
 TEMPLATE_DIRS = (
-    #'/users/kdrahbar/dev/CSE591-Group-Project/templates',
-    '/Users/DaMania/Dev/CSE591-Group-Project/templates',
+    '/users/kdrahbar/Dropbox/School/CSE591 - Ross/591_Project/templates',
+    #'/Users/DaMania/Dev/CSE591-Group-Project/templates',
 
 )
 
+
+#MEDIA_ROOT = '/users/kdrahbar/djcode/media'
+MEDIA_URL = 'http://127.0.0.1:8000/media/'
+MEDIA_URL = '/media/'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
 # Bootstrap stuff
 STATICFILES_DIRS = (
-    #'/Users/kdrahbar/djcode/track_yourself/static',
-    '/Users/DaMania/Dev/CSE591-Group-Project/static',
+    '/users/kdrahbar/Dropbox/School/CSE591 - Ross/591_Project/static',
+    #'/Users/DaMania/Dev/CSE591-Group-Project/static',
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(

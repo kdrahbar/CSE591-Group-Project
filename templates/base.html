@@ -7,7 +7,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 
-	<title>{% block title %}{% endblock %}</title>
+	<title>{% block title %} La illah illa allah Mohammed Resul allah{% endblock %}</title>
 
 	<!-- Bootstrap core CSS -->
 
@@ -19,6 +19,8 @@
 	<script type="text/javascript"
 		src="https://maps.googleapis.com/maps/api/js?sensor=true">
 	</script>
+
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
 <style>
 	body {margin-top: 60px;}
@@ -54,11 +56,11 @@
 		</div><!-- /.container -->
 	</nav>
 
-	<div class="container">
+	<div class="container-fluid">
 
 		<div class="row">
 			<div class="col-lg-12">
-				{% block content %} {% endblock content %}
+
 			</div>
 		</div>
 
@@ -69,14 +71,91 @@
 
 	<script src="{% static 'bare/js/jquery-1.10.2.js' %}"></script>
 	<script src="{% static 'bare/js/bootstrap.js' %}"></script>
+	<script src="{% static 'totem/js/jquery.totemticker.js' %}"></script>
 
 	<!-- Loading the Map -->
 	<div id="map-canvas" style="left:7cm; height:100%; width:78.5%; float:bottom"></div>
 	<script type="text/javascript">
+	var map;
 
+	function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+			            }
+			        }
+			    }
+			    return cookieValue;
+			}
+			var csrftoken = getCookie('csrftoken');
+
+			function csrfSafeMethod(method) {
+			    // these HTTP methods do not require CSRF protection
+			    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+			}
+			function sameOrigin(url) {
+			    // test that a given url is a same-origin URL
+			    // url could be relative or scheme relative or absolute
+			    var host = document.location.host; // host + port
+			    var protocol = document.location.protocol;
+			    var sr_origin = '//' + host;
+			    var origin = protocol + sr_origin;
+			    // Allow absolute or scheme relative URLs to same origin
+			    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+			        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+			        // or any other URL that isn't scheme relative or absolute i.e relative.
+			        !(/^(\/\/|http:|https:).*/.test(url));
+			}
+			$.ajaxSetup({
+			    beforeSend: function(xhr, settings) {
+			        if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+			            // Send the token to same-origin, relative URLs only.
+			            // Send the token only if the method warrants CSRF protection
+			            // Using the CSRFToken value acquired earlier
+			            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			        }
+			    }
+			});
+
+	
 		function searchPressed () {
 			var placeName = document.getElementById('searchArea').value;
-			
+			$.ajax({
+				     type:"POST",
+				     url:"/search/",
+				     data: {
+				            'place': placeName
+				        },
+				      success: function(data){
+				      		var json = data.data;
+				      		var list = document.getElementById('restaurant_list');
+				      		var items = list.getElementsByTagName('li')
+				      		//alert(JSON.stringify(json, null, 4));
+				      		if (json.restaurants.length != 0)
+				      			{
+				      				for(var i =0; i < json.restaurants.length; i++)
+				      				{
+				      					items[i].innerHTML = json.restaurants[i]
+				      				}	
+				      				list.style.display = "block";
+
+				      			
+				      			}
+				      		else
+				      			list.style.display = "none";
+				      
+
+		      				map.panTo(new google.maps.LatLng(json.location[0], json.location[1]));
+		      				map.setZoom(12);
+
+				      }
+				    });	
 			// do stuff with place name
 		}
 
@@ -102,7 +181,7 @@
 				scaleControl:false
 			};
 
-			var map = new google.maps.Map(document.getElementById("map-canvas"),
+			 map = new google.maps.Map(document.getElementById("map-canvas"),
 				mapOptions);
 
 			//search field
@@ -128,6 +207,61 @@
 
 			document.body.appendChild(box);
 			document.body.appendChild(btn);
+					
+			// List of restaurants
+			var restaurant_list = document.createElement('ul');
+			restaurant_list.setAttribute('id', 'restaurant_list');
+			restaurant_list.setAttribute('style', 'pull-left');
+			var child;
+			for(var i =0; i < 20; i++)
+			{
+				child = document.createElement('li');
+				child.setAttribute('class', 'list-group-item');
+				restaurant_list.appendChild(child);
+
+			}
+			restaurant_list.style.position = 'pull-left';
+			restaurant_list.style.left = '175px';
+			restaurant_list.style.width = '250px';
+			restaurant_list.style.height = '400px';
+			restaurant_list.top = '0px';
+			restaurant_list.style.display = "none";
+			document.body.appendChild(restaurant_list);
+
+			var par = document.createElement('p');
+			var next = document.createElement('a');
+			next.setAttribute('href','#');
+			next.setAttribute('id', 'ticker-next');
+			par.appendChild(next);
+
+			var previous = document.createElement('a');
+			previous.setAttribute('href','#');
+			previous.setAttribute('id','ticker-previous');
+			par.appendChild(previous);
+
+			var stop = document.createElement('a');
+			stop.setAttribute('href','#');
+			stop.setAttribute('id', 'stop');
+			par.appendChild(stop);
+
+			var start = document.createElement('a');
+			start.setAttribute('href', '#');
+			start.setAttribute('id', 'start');
+			par.appendChild(start);
+
+			document.body.appendChild(par);
+			
+			$("#restaurant_list").totemticker({
+				row_height  :   '100px',
+				next        :   '#ticker-next',
+				previous    :   '#ticker-previous',
+				stop        :   '#stop',
+				start       :   '#start',
+				});
+			$("#restaurant_list").addClass("list-group");
+
+
+
 		}
 		google.maps.event.addDomListener(window, 'load', initialize);
 	</script> 
