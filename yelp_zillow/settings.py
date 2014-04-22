@@ -81,12 +81,9 @@ TEMPLATE_DIRS = (
 
 )
 
-
-#MEDIA_ROOT = '/users/kdrahbar/djcode/media'
-MEDIA_URL = 'http://127.0.0.1:8000/media/'
-MEDIA_URL = '/media/'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
+
 
 STATIC_URL = '/static/'
 # Bootstrap stuff

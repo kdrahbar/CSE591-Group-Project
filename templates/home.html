@@ -25,33 +25,48 @@
 <style>
 	body {margin-top: 60px;}
 	#map-canvas {
-	width:100%;
-	height:40%;
-	min-width: 700px;
-	min-height: 615px;
-	padding-bottom: 100px;
+		width:100%;
+		height:40%;
+		min-width: 700px;
+		min-height: 615px;
+		padding-bottom: 100px;
 	}
 	#search_area {
-	padding-left: 10px;
+		padding-left: 20px;
+		margin-left: 20px;
 	}
+
 	#search_area input{
 		margin-left: 10px;
+		padding-left: 10px;
 	}
 
-	#restaurantList{
-		margin-top: 10px;
+	#graphs {
 		margin-left: 10px;
-		padding-bottom: 5px;
-
+		margin-top: 10px;
 	}
-	#optionsPanel{
+
+	#restaurantList {
+		margin-top: 5px;
+		margin-left: 7px;
+		padding-left: 35px;
+	}
+
+	#optionsPanel {
 		margin-left: 10px;
 		margin-bottom: 10px;
 		padding-bottom:10px;
 		border-bottom: 10px;
+		padding-left: 45px;
 	}
-	#viewBy{
+
+	#viewBy {
 		margin-bottom: 3px;
+	}
+
+	#graphCanvas{
+		margin-left: 10px;
+		padding-left: 25px;
 	}
 
 </style>
@@ -85,6 +100,9 @@
 		<div class="row">
 			<div class="col-md-3">
 				<div id="search_area"></div>
+				<div id="graphs">
+					<canvas id = "graphCanvas" width="250" height="330"></canvas>
+				</div>
 				<div id="restaurantList"></div>
 				<div id="optionsPanel"></div>
 			</div>	
@@ -107,7 +125,8 @@
 	
 	<script type="text/javascript">
 	var map;
-	var view;
+	var view = "yelp-zillow";
+	var marker_names = []
 
 function getCookie(name) {
     var cookieValue = null;
@@ -162,6 +181,233 @@ function setAllMap(map) {
   markers = []
 }
 
+var canvas = document.getElementById("graphCanvas");
+var ctx = canvas.getContext("2d");
+
+function showCityDataGraph(marker) {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.save();
+
+	ctx.beginPath();
+	ctx.moveTo(0, 30);
+	ctx.lineTo(250,30);
+	ctx.stroke()
+	ctx.beginPath();
+	ctx.moveTo(0, 35);
+	ctx.lineTo(0,25);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 35);
+	ctx.lineTo(250,25);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*marker.jsonData.singleHomes) ,25);
+	ctx.lineTo( (250*marker.jsonData.singleHomes) ,35);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*.314) ,25);
+	ctx.lineTo( (250*.314) ,35);
+	ctx.stroke();
+	ctx.font = "10px Arial";
+	ctx.fillText("Percent of Homes with Children",50,10);
+	ctx.fillText(".0",0,20);
+	ctx.fillText("1.0",245,20);
+	ctx.fillStyle = "green";
+	ctx.fillText(marker.jsonData.singleHomes,(marker.jsonData.singleHomes*250 - 10),22);
+	ctx.fillStyle = "blue";
+	ctx.fillText("0.314", 250*.314 - 10, 45);
+	ctx.fillStyle = "black";
+
+	ctx.beginPath();
+	ctx.moveTo(0, 80);
+	ctx.lineTo(250,80);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(0, 85);
+	ctx.lineTo(0,75);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 85);
+	ctx.lineTo(250,75);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*marker.jsonData.singleMale) ,75);
+	ctx.lineTo( (250*marker.jsonData.singleMale) ,85);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*.146) ,75);
+	ctx.lineTo( (250*.146) ,85);
+	ctx.stroke();
+	ctx.fillText("Percent of Single Males",70,60);
+	ctx.fillText(".0",0,70);
+	ctx.fillText("1.0",245,70);
+	ctx.fillStyle = "green";
+	ctx.fillText(marker.jsonData.singleMale,(marker.jsonData.singleMale*250 - 10),72);
+	ctx.fillStyle = "blue";
+	ctx.fillText("0.146", 250*.146 - 10, 95);
+	ctx.fillStyle = "black";
+
+	ctx.beginPath();
+	ctx.moveTo(0, 130);
+	ctx.lineTo(250,130);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(0, 135);
+	ctx.lineTo(0,125);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 135);
+	ctx.lineTo(250,125);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*marker.jsonData.singleFemale) ,125);
+	ctx.lineTo( (250*marker.jsonData.singleFemale) ,135);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*.125) ,125);
+	ctx.lineTo( (250*.125) ,135);
+	ctx.stroke();
+	ctx.fillText("Percent of Single Females",65,110);
+	ctx.fillText(".0",0,120);
+	ctx.fillText("1.0",245,120);
+	ctx.fillStyle = "green";
+	ctx.fillText(marker.jsonData.singleFemale,(marker.jsonData.singleFemale*250 - 10),122);
+	ctx.fillStyle = "blue";
+	ctx.fillText("0.125", 250*.125 - 10, 145);
+	ctx.fillStyle = "black";
+
+	ctx.beginPath();
+	ctx.moveTo(0, 180);
+	ctx.lineTo(250,180);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(0, 185);
+	ctx.lineTo(0,175);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 185);
+	ctx.lineTo(250,175);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*marker.jsonData.rentPercent) ,185);
+	ctx.lineTo( (250*marker.jsonData.rentPercent) ,175);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( (250*.337) ,185);
+	ctx.lineTo( (250*.337) ,175);
+	ctx.stroke();
+	ctx.fillText("Percent of Home Renters",70,160);
+	ctx.fillText(".0",0,170);
+	ctx.fillText("1.0",245,170);
+	ctx.fillStyle = "green";
+	ctx.fillText(marker.jsonData.rentPercent,(marker.jsonData.rentPercent*250 - 10),172);
+	ctx.fillStyle = 'blue'
+	ctx.fillText("0.337", 250*.337 - 10, 195);
+	ctx.fillStyle = 'black'
+
+	ctx.beginPath();
+	ctx.moveTo(0, 230);
+	ctx.lineTo(250, 230);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(0, 235);
+	ctx.lineTo(0,225);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 235);
+	ctx.lineTo(250,225);
+	ctx.stroke();
+	ctx.beginPath();
+	avgIncome = marker.jsonData.averageIncome.substr(1);
+	avgIncome = avgIncome.replace (/,/g, "");
+	avgIncome = parseFloat(avgIncome)
+	ctx.moveTo( 250*((avgIncome-20000.0)/60000.0) ,235);
+	ctx.lineTo( 250*((avgIncome-20000.0)/60000.0) ,225);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( 250*(24500.0/60000.0) ,235);
+	ctx.lineTo( 250*(24500.0/60000.0) ,225);
+	ctx.stroke();
+	ctx.fillText("Average Income",88,210);
+	ctx.fillText("$20,000",0,210);
+	ctx.fillText("$80,000",210,210);
+	ctx.fillStyle = "green";
+	avgIncome_s = marker.jsonData.averageIncome.substring(0, marker.jsonData.averageIncome.length - 3);
+	ctx.fillText(avgIncome_s, 250*(avgIncome-20000.0)/60000.0 - 20,222);
+	ctx.fillStyle = 'blue'
+	ctx.fillText("$44,500", 250*(24500.0/60000.0) - 20, 245);
+	ctx.fillStyle = 'black'
+
+	ctx.beginPath();
+	ctx.moveTo(0, 280);
+	ctx.lineTo(250, 280);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(0, 285);
+	ctx.lineTo(0,275);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(250, 285);
+	ctx.lineTo(250,275);
+	ctx.stroke();
+	ctx.beginPath();
+	avgIncome = marker.jsonData.homePrice.substr(1);
+	avgIncome = avgIncome.replace (/,/g, "");
+	avgIncome = parseFloat(avgIncome)
+	ctx.moveTo( 250*((avgIncome-50000.0)/350000.0) ,285);
+	ctx.lineTo( 250*((avgIncome-50000.0)/350000.0) ,275);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo( 250*(119000.0/350000.0) ,285);
+	ctx.lineTo( 250*(119000.0/350000.0) ,275);
+	ctx.stroke();
+	ctx.fillText("Average Home Price",80,260);
+	ctx.fillText("$50,000",0,260);
+	ctx.fillText("$400,000",205,260);
+	ctx.fillStyle = "green";
+	avgIncome_s = marker.jsonData.homePrice.substring(0, marker.jsonData.homePrice.length - 3);
+	ctx.fillText(avgIncome_s, 250*(avgIncome-50000.0)/350000.0 - 25, 272);
+	ctx.fillStyle = 'blue'
+	ctx.fillText("$169,000", 250*(119000.0/350000.0) - 20, 295);
+	ctx.fillStyle = 'black'
+
+
+	ctx.beginPath();
+    ctx.rect(160, 300, 7, 7);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.rect(160, 320, 7, 7);
+    ctx.fillStyle = 'blue';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'black'
+    ctx.fillText("City Value", 168, 307)
+    ctx.fillText("National Average", 168, 327)
+	ctx.stroke();    
+
+
+	// ctx.font = "10px Arial";
+	// ctx.fillText("Hello World",20,35);
+}
+
+function markerSelected (marker) {
+	showCityDataGraph(marker);
+}
+
+//Used when a user clicks one of the three radio buttons at the top to change the 
+//images of the icons appropriately
+function updateIcons(){
+	 for (var i = 0; i < markers.length; i++) {
+	 	icon = "/static/images/png-" + view + "/" + marker_names[i] + "-" + view + ".png";
+		markers[i].setIcon(icon);
+
+  }
+}
+
 // Removes the markers from the map, but keeps them in the array.
 function clearMarkers() {
   setAllMap(null);
@@ -170,20 +416,26 @@ function clearMarkers() {
 function makeInfoWindowEvent(map, infowindow, marker) {
 	google.maps.event.addListener(marker, 'click', function() {
     infowindow.open(map, marker);
+    showCityDataGraph(marker);
   });
 }
 
 function yelpBtn_clicked() {
-	view = 0;
+	view = "yelp";
+	updateIcons();
 }
 
 function zillowBtn_clicked() {
-	view = 1;
+	view = "zillow";
+	updateIcons();
 }
 
 function both_clicked(){
-	view = 2;
+	view = "yelp-zillow";
+	updateIcons();
 }
+
+var check = true;
 
 var markers = []	
 function searchPressed () {
@@ -203,6 +455,9 @@ function searchPressed () {
 		      		if (json.restaurants.length != 0)
 		      			{
 		      				var markerBounds = new google.maps.LatLngBounds();
+		      				var context = canvas.getContext('2d');
+		      				ctx.clearRect(0, 0, canvas.width, canvas.height);
+		      				ctx.save();
 		      				// If there is only one city
 		      				if(json.restaurants.length == 20)
 		      				{
@@ -211,6 +466,8 @@ function searchPressed () {
 			      					items[i].innerHTML = json.restaurants[i];
 			      				}
 			      				clearMarkers();
+			      				marker_names = [];
+			      				placeName = placeName.toLowerCase();
 			      				list.style.display = "block";
 			      				options.style.display = "block";
 			      				map.panTo(new google.maps.LatLng(json.location[0], json.location[1]));
@@ -218,10 +475,12 @@ function searchPressed () {
 
       							var myLatlng = new google.maps.LatLng(json.location[0],json.location[1]);
 	      						var marker = new google.maps.Marker({
-							    position: myLatlng,
-							    icon: "http://127.0.0.1:8000/media/yellow.png",
-							    map: map
+								    position: myLatlng,
+								    icon: "/static/images/png-" + view + "/" + placeName + "-" + view + ".png",
+								    map: map,
+								    jsonData: json
 								}); 
+
 								var infowindow = new google.maps.InfoWindow({
 									content: 'Percentage of Single Males: ' + json.singleMale + '<br>' +
 											 'Percentage of Single Females: ' + json.singleFemale + '<br>' +
@@ -230,20 +489,57 @@ function searchPressed () {
 											 'Percentage of Home Renters: ' + json.rentPercent + '<br>' +
 											 'Percentage of Homes with Children: ' + json.singleHomes
 								});
-								makeInfoWindowEvent(map, infowindow, marker);
+								showCityDataGraph(marker);
+								makeInfoWindowEvent(map, infowindow, marker, true);
 								markerBounds.extend(myLatlng);
-								markers.push(marker)  
+								markers.push(marker);
+								marker_names.push(placeName);
 		      				}
 		      				else
 		      				{
 		      					clearMarkers();
-		      					for(var i = 0; i < json.names.length; i++)
+		      					marker_names = [];
+
+			      				var y = 0;
+			      				var x = 0;
+			      				var count = 0;
+			      				while(y < 2)
+			      				{
+			      					for(var x = 0; x < 10; x++)
+			      					{
+			      						items[count].innerHTML = json.restaurants[y][x];
+			      						count += 1;
+			      					}
+			      					y = y + 1;
+			      				}
+
+			      				list.style.display = "block";
+			      				options.style.display = "block";	      						
+
+		      					for( i = 0; i < json.names.length; i++)
 		      					{
+
+		      						var json_graph = new Object();
+
+			      					json_graph.singleMale = json.singleMale[i];
+		      						json_graph.singleFemale = json.singleFemale[i];
+		      						json_graph.averageIncome = json.averageIncome[i];
+		      						json_graph.rentPercent = json.rentPercent[i];
+		      						json_graph.singleHomes = json.singleHomes[i];
+		      						json_graph.homePrice = json.homePrice[i];
+
+		      						name = json.names[i].toLowerCase();
+		      						marker_names.push(name);
+
 		      						var myLatlng = new google.maps.LatLng(json.locations[i][0],json.locations[i][1]);
+		      						
 		      						var marker = new google.maps.Marker({
-								    position: myLatlng,
-								    map: map
+								  	  	position: myLatlng,
+									    icon: "/static/images/png-" + view + "/" + name + "-" + view + ".png",
+									    map: map,
+									    jsonData: json_graph
 									});
+
 									var infowindow = new google.maps.InfoWindow({
 										content: 'Percentage of Single Males: ' + json.singleMale[i] + '<br>' +
 												 'Percentage of Single Females: ' + json.singleFemale[i] + '<br>' +
@@ -252,9 +548,10 @@ function searchPressed () {
 												 'Percentage of Home Renters: ' + json.rentPercent[i] + '<br>' +
 												 'Percentage of Homes with Children: ' + json.singleHomes[i]
     								});
+
     								makeInfoWindowEvent(map, infowindow, marker);
     								markerBounds.extend(myLatlng);
-    								markers.push(marker)
+    								markers.push(marker);
 								}
 								map.fitBounds(markerBounds);
 		      				}
@@ -335,6 +632,13 @@ function initialize()
 	var areaDiv = document.getElementById("search_area");
 	areaDiv.appendChild(box);
 	areaDiv.appendChild(btn);
+
+	//graph area
+	var graphArea = document.createElement('ga');
+	graphArea.style.position = 'pull-left';
+	graphArea.style.width = '250px';
+	graphArea.style.height = '350px';
+	document.getElementById("graphs").appendChild(graphArea);
 			
 	// List of restaurants
 	var restaurant_list = document.createElement('ul');
@@ -390,7 +694,7 @@ function initialize()
 	menu.appendChild(par);
 	
 	$("#restaurant_list").totemticker({
-		row_height  :   '100px',
+		row_height  :   '40px',
 		next        :   '#ticker-next',
 		previous    :   '#ticker-previous',
 		stop        :   '#stop',

@@ -6,6 +6,7 @@ from django.template import Template
 from sprocs import yelp_table, zillow_table
 import locale
 locale.setlocale( locale.LC_ALL, '' )
+CITIES = ['Tempe', "Phoenix", "Scottsdale", "Chandler", "Laveen", "Goodyear", "Peoria", "Gilbert", "Glendale", "Tolleson", "Mesa", "Buckeye"]
 
 LAT = {"Tempe":33.425884,
 		"Phoenix":33.451441,
@@ -33,6 +34,9 @@ LONG = {"Tempe":-111.938057,
 		"Tolleson":-112.258346,
 		"Mesa":-111.829769}
 
+def static(request):
+	return render(request, 'yellow.png')
+
 def trunc(f, n):
 	f = float(f)
 	return ('%.*f' % (n + 1, f))[:-1]
@@ -46,9 +50,12 @@ def home(request):
 def search(request):
 	if request.POST:
 		city = str(request.POST.get('place'))
-		if ',' in city:
-			city = city.replace(' ', '')
-			places = city.split(',')
+		if ',' in city or '*' in city:
+			if '*' in city:
+				places = CITIES
+			else:
+				city = city.replace(' ', '')
+				places = city.split(',')
 			restaurants, ratings, sMale, sFemale, homPrice, singleHome, rentPer, averageIncome, locations = [],[],[],[],[],[],[],[],[]
 			for place in places:
 				restaurantsT, ratingsT = yelp_table.get_restaurants(place)
